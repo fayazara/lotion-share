@@ -1,6 +1,4 @@
-# Copy to .dev.vars and fill in. Loaded by `cf dev` in local dev only.
-# Declare each secret in cloudflare.config.ts with `bindings.secret()`.
-# For production, upload values with: cf deploy --secrets-file <PATH>
-# Bindings (D1, KV, R2, etc.) go in cloudflare.config.ts, NOT here.
+# Copy to .dev.vars for local dev. Loaded by `cf dev` only.
+# In production, `pnpm run setup` sets LOTION_TOKEN as a secret for you.
 
-# MY_SECRET="example"
+LOTION_TOKEN="local-dev-token"

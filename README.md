@@ -1,104 +1,102 @@
-# TanStack Start + Cloudflare Workers Template
+# Lotion Share
 
-A minimal, agent-first starter for building full-stack apps on Cloudflare
-Workers with TanStack Start and the [`cf` CLI](https://developers.cloudflare.com/cf/).
+Publish notes from [Lotion](https://github.com/fayazara/Lotion) to the web, on
+your own Cloudflare account.
 
-> [!NOTE]
-> This is a highly opinionated starter kit made specifically for coding
-> agents (Claude Code, opencode, Codex, …). `cf` and the Cloudflare Vite
-> plugin 2.0 are both in beta, so expect things to move.
+Lotion Share is a Cloudflare Worker you deploy yourself. It stores published
+notes in **D1**, their images and files in **R2**, and serves each note as a
+fast, themed page at its own link. Nobody else runs it, and nobody else holds
+your notes. It fits within the Workers free plan.
 
-**Includes:**
+## Set it up
 
-- TanStack Start on Vite, deployed as a Cloudflare Worker
-- `cloudflare.config.ts` — typed config for the `cf` CLI (no `wrangler.jsonc`)
-- **Zero bindings by default** — no database or bucket is created until a
-  project asks for one
-- Drizzle ORM + Drizzle Kit + drizzle-zod installed, ready for D1
-- Example **server function** (`/`) — typed RPC for UI data
-- Example **API route** (`/api/hello`) — GET + POST with Zod validation
-- Tailwind v4 + Kumo (`@cloudflare/kumo`) + Phosphor icons
-- An `AGENTS.md` and skills that teach agents the patterns they get wrong
+You don't need to do this by hand. In Lotion, open **Settings → Cloud**, click
+**Copy setup prompt**, and paste it into your coding agent (Claude Code, Codex,
+OpenCode, …). The agent follows [DEPLOY.md](DEPLOY.md), runs one command, and
+gives you a URL and a token to paste back into Lotion.
 
-## Setup
+To do it yourself:
 
 ```bash
-npm i -g cf      # once per machine
+gh repo fork fayazara/lotion-share --clone   # or: git clone, see DEPLOY.md
+cd lotion-share
 pnpm install
-pnpm dev         # http://localhost:3000
-```
-
-Nothing needs to be created on Cloudflare to run locally. To deploy:
-
-```bash
-cf auth login    # once
+pnpm exec cf auth login
 pnpm run deploy
 ```
 
-Before the first deploy of a real project, rename `worker.name` in
-`cloudflare.config.ts` and `name` in `package.json`.
+## What a published page shows
 
-## Adding a database, storage, or other bindings
+Each note gets its own page at `/n/<id>`, rendered on the worker and read the
+way Lotion reads Markdown:
 
-The template ships without bindings on purpose. Ask your agent:
+- the note's theme colors, following the reader's light or dark mode, set in the system font
+- its cover photo (with the Unsplash credit) and its icon
+- headings, lists, checklists, tables, callouts (`> [!TIP]`) and `[TOC]`
+- code with syntax highlighting, and Mermaid diagrams
+- YouTube, Vimeo, Loom, Spotify, Apple Music, Figma and CodePen embeds
+- link cards, with the linked page's title, description and image
+- images, video, audio, PDFs, and download cards for other files
 
-> add a D1 database with a `posts` table
+Pages have Open Graph tags, so links to them unfurl in chat apps. There's no
+index of notes: a note is only reachable by its link.
 
-> add an R2 bucket for file uploads
+## Update it
 
-`AGENTS.md` and the skills in `.agents/skills/` give it the exact steps:
-create the resource with `cf`, declare it in `cloudflare.config.ts`, set up
-Drizzle, generate and apply migrations.
+Run the same prompt again, or:
 
-## Scripts
-
-| script        | what it does                                              |
-| ------------- | --------------------------------------------------------- |
-| `dev`         | `cf dev` — Vite dev server on workerd, port 3000           |
-| `build`       | `cf build` — production build into `.cloudflare/output/`   |
-| `deploy`      | `cf deploy` — build, upload and deploy (`pnpm run deploy`) |
-| `typecheck`   | Regenerate binding types, then `tsc`                       |
-| `cf-typegen`  | `cf workers types` → `.cloudflare/types/index.d.ts`        |
-| `db:generate` | Generate SQL migrations from `src/db/schema.ts`            |
-| `format`      | Prettier                                                   |
-
-## Project layout
-
-```
-src/
-  routes/
-    __root.tsx
-    index.tsx          # server function example
-    api/
-      hello.ts         # API route (GET + POST)
-cloudflare.config.ts   # Worker config + bindings (read by cf)
-vite.config.ts         # plugins, dev port, source maps
-drizzle.config.ts      # drizzle-kit config (used once a DB is added)
-AGENTS.md              # read this if you're an AI agent
-.agents/skills/        # step-by-step recipes for agents
+```bash
+git fetch upstream && git merge upstream/main
+pnpm install
+pnpm run deploy
 ```
 
-## Cloudflare docs for agents
+Your token stays the same, so Lotion stays connected. Lotion's **Verify
+connection** tells you when your worker is behind.
 
-`AGENTS.md` tells agents to look Cloudflare things up rather than guess:
-first through the [Cloudflare Docs MCP server](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/)
-if it is installed, otherwise by fetching Markdown from
-`https://developers.cloudflare.com/`. To install the MCP server:
+## How it works
 
-```json
-{
-  "mcpServers": {
-    "cloudflare-docs": {
-      "url": "https://docs.mcp.cloudflare.com/mcp"
-    }
-  }
-}
+| | |
+| --- | --- |
+| `pnpm run deploy` | Creates or reuses the D1 database and R2 bucket, applies migrations, sets the token secret, and deploys. Safe to run any number of times. |
+| `lotion.deploy.json` | Your account, resource names and IDs, written by the deploy. Commit it in your fork with `git add -f`. The template ignores it and never ships one, so updates merge cleanly. |
+| `LOTION_TOKEN` | The secret Lotion sends as `Authorization: Bearer …`. Made by the deploy and shown once. `pnpm run deploy -- --rotate-token` makes a new one. |
+
+### API
+
+Every `/api` route needs the token.
+
+| Method | Path | |
+| --- | --- | --- |
+| `GET` | `/api/v1/info` | Checks the token, and reports the deployed version and any pending migrations. |
+| `GET` | `/api/v1/notes` | Lists published notes. |
+| `GET` | `/api/v1/notes/:id` | Returns one note as published. |
+| `PUT` | `/api/v1/notes/:id` | Publishes or updates a note. The reply lists the files still to upload. |
+| `PUT` | `/api/v1/notes/:id/files/:name` | Uploads one of a note's files, as the raw body. |
+| `DELETE` | `/api/v1/notes/:id` | Unpublishes a note and deletes its files. |
+
+These are public:
+
+| Path | |
+| --- | --- |
+| `/n/:id` | A published note. |
+| `/files/:id/:name` | Its files. They're immutable and cached for good. |
+
+## Develop
+
+```bash
+pnpm install
+cp .dev.vars.example .dev.vars   # LOTION_TOKEN="local-dev-token"
+pnpm dev                         # http://localhost:3000, local D1 and R2
 ```
 
-## Why AGENTS.md?
+To point Lotion at it, set the Worker URL to `http://localhost:3000` and the
+token to `local-dev-token`.
 
-TanStack Start, the Workers Vite plugin and the `cf` CLI all moved faster
-than LLM training data. Without guidance, agents generate old APIs like
-`createServerFileRoute`, mount a Hono app inside the Worker entry, write a
-`wrangler.jsonc`, or pass `env` around as a parameter. `AGENTS.md` documents
-what currently works so an agent gets the right pattern on the first try.
+Built on TanStack Start, the [`cf` CLI](https://developers.cloudflare.com/cf/),
+Drizzle and marked. See [AGENTS.md](AGENTS.md) for the patterns this codebase
+follows.
+
+## License
+
+MIT

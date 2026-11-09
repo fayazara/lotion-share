@@ -17,3 +17,7 @@ todos.json
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Your own deployment, written by `pnpm run deploy`. The template never ships
+# one; in a fork, commit yours with `git add -f lotion.deploy.json`.
+lotion.deploy.json

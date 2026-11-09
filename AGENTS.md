@@ -1,5 +1,8 @@
 # Agent Instructions
 
+> **Deploying or updating Lotion Share for a user?** Follow [DEPLOY.md](DEPLOY.md)
+> step by step. The rest of this file is for changing the code.
+
 This is a **TanStack Start + Cloudflare Workers** starter, built to be driven
 by coding agents. Read this whole file before generating code. The patterns
 here are the ones that work — most AI training data is out of date for

@@ -10,43 +10,114 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiHelloRouteImport } from './routes/api/hello'
+import { Route as NIdRouteImport } from './routes/n.$id'
+import { Route as ApiV1InfoRouteImport } from './routes/api/v1/info'
+import { Route as FilesIdNameRouteImport } from './routes/files.$id.$name'
+import { Route as ApiV1NotesIndexRouteImport } from './routes/api/v1/notes.index'
+import { Route as ApiV1NotesIdRouteImport } from './routes/api/v1/notes.$id'
+import { Route as ApiV1NotesIdFilesNameRouteImport } from './routes/api/v1/notes.$id.files.$name'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHelloRoute = ApiHelloRouteImport.update({
-  id: '/api/hello',
-  path: '/api/hello',
+const NIdRoute = NIdRouteImport.update({
+  id: '/n/$id',
+  path: '/n/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1InfoRoute = ApiV1InfoRouteImport.update({
+  id: '/api/v1/info',
+  path: '/api/v1/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilesIdNameRoute = FilesIdNameRouteImport.update({
+  id: '/files/$id/$name',
+  path: '/files/$id/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1NotesIndexRoute = ApiV1NotesIndexRouteImport.update({
+  id: '/api/v1/notes/',
+  path: '/api/v1/notes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1NotesIdRoute = ApiV1NotesIdRouteImport.update({
+  id: '/api/v1/notes/$id',
+  path: '/api/v1/notes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1NotesIdFilesNameRoute = ApiV1NotesIdFilesNameRouteImport.update({
+  id: '/files/$name',
+  path: '/files/$name',
+  getParentRoute: () => ApiV1NotesIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/hello': typeof ApiHelloRoute
+  '/n/$id': typeof NIdRoute
+  '/api/v1/info': typeof ApiV1InfoRoute
+  '/files/$id/$name': typeof FilesIdNameRoute
+  '/api/v1/notes/$id': typeof ApiV1NotesIdRouteWithChildren
+  '/api/v1/notes/': typeof ApiV1NotesIndexRoute
+  '/api/v1/notes/$id/files/$name': typeof ApiV1NotesIdFilesNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/hello': typeof ApiHelloRoute
+  '/n/$id': typeof NIdRoute
+  '/api/v1/info': typeof ApiV1InfoRoute
+  '/files/$id/$name': typeof FilesIdNameRoute
+  '/api/v1/notes/$id': typeof ApiV1NotesIdRouteWithChildren
+  '/api/v1/notes': typeof ApiV1NotesIndexRoute
+  '/api/v1/notes/$id/files/$name': typeof ApiV1NotesIdFilesNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/hello': typeof ApiHelloRoute
+  '/n/$id': typeof NIdRoute
+  '/api/v1/info': typeof ApiV1InfoRoute
+  '/files/$id/$name': typeof FilesIdNameRoute
+  '/api/v1/notes/$id': typeof ApiV1NotesIdRouteWithChildren
+  '/api/v1/notes/': typeof ApiV1NotesIndexRoute
+  '/api/v1/notes/$id/files/$name': typeof ApiV1NotesIdFilesNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/hello'
+  fullPaths:
+    | '/'
+    | '/n/$id'
+    | '/api/v1/info'
+    | '/files/$id/$name'
+    | '/api/v1/notes/$id'
+    | '/api/v1/notes/'
+    | '/api/v1/notes/$id/files/$name'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/hello'
-  id: '__root__' | '/' | '/api/hello'
+  to:
+    | '/'
+    | '/n/$id'
+    | '/api/v1/info'
+    | '/files/$id/$name'
+    | '/api/v1/notes/$id'
+    | '/api/v1/notes'
+    | '/api/v1/notes/$id/files/$name'
+  id:
+    | '__root__'
+    | '/'
+    | '/n/$id'
+    | '/api/v1/info'
+    | '/files/$id/$name'
+    | '/api/v1/notes/$id'
+    | '/api/v1/notes/'
+    | '/api/v1/notes/$id/files/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiHelloRoute: typeof ApiHelloRoute
+  NIdRoute: typeof NIdRoute
+  ApiV1InfoRoute: typeof ApiV1InfoRoute
+  FilesIdNameRoute: typeof FilesIdNameRoute
+  ApiV1NotesIdRoute: typeof ApiV1NotesIdRouteWithChildren
+  ApiV1NotesIndexRoute: typeof ApiV1NotesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,19 +129,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/hello': {
-      id: '/api/hello'
-      path: '/api/hello'
-      fullPath: '/api/hello'
-      preLoaderRoute: typeof ApiHelloRouteImport
+    '/n/$id': {
+      id: '/n/$id'
+      path: '/n/$id'
+      fullPath: '/n/$id'
+      preLoaderRoute: typeof NIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/info': {
+      id: '/api/v1/info'
+      path: '/api/v1/info'
+      fullPath: '/api/v1/info'
+      preLoaderRoute: typeof ApiV1InfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/files/$id/$name': {
+      id: '/files/$id/$name'
+      path: '/files/$id/$name'
+      fullPath: '/files/$id/$name'
+      preLoaderRoute: typeof FilesIdNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/notes/': {
+      id: '/api/v1/notes/'
+      path: '/api/v1/notes'
+      fullPath: '/api/v1/notes/'
+      preLoaderRoute: typeof ApiV1NotesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/notes/$id': {
+      id: '/api/v1/notes/$id'
+      path: '/api/v1/notes/$id'
+      fullPath: '/api/v1/notes/$id'
+      preLoaderRoute: typeof ApiV1NotesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/notes/$id/files/$name': {
+      id: '/api/v1/notes/$id/files/$name'
+      path: '/files/$name'
+      fullPath: '/api/v1/notes/$id/files/$name'
+      preLoaderRoute: typeof ApiV1NotesIdFilesNameRouteImport
+      parentRoute: typeof ApiV1NotesIdRoute
     }
   }
 }
 
+interface ApiV1NotesIdRouteChildren {
+  ApiV1NotesIdFilesNameRoute: typeof ApiV1NotesIdFilesNameRoute
+}
+
+const ApiV1NotesIdRouteChildren: ApiV1NotesIdRouteChildren = {
+  ApiV1NotesIdFilesNameRoute: ApiV1NotesIdFilesNameRoute,
+}
+
+const ApiV1NotesIdRouteWithChildren = ApiV1NotesIdRoute._addFileChildren(
+  ApiV1NotesIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiHelloRoute: ApiHelloRoute,
+  NIdRoute: NIdRoute,
+  ApiV1InfoRoute: ApiV1InfoRoute,
+  FilesIdNameRoute: FilesIdNameRoute,
+  ApiV1NotesIdRoute: ApiV1NotesIdRouteWithChildren,
+  ApiV1NotesIndexRoute: ApiV1NotesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
