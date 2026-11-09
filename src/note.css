@@ -345,20 +345,21 @@ body {
   font-size: 0.84rem;
 }
 
-.note-body pre.mermaid {
+.note-body figure.diagram {
+  --diagram-accent: var(--accent);
   display: flex;
   justify-content: center;
-  background: transparent;
+  overflow-x: auto;
+  padding: 0.5rem;
   border: 1px solid var(--rule);
-  color: var(--secondary);
-  font-family: var(--code-font);
-  font-size: 0.8rem;
-  white-space: pre;
+  border-radius: 12px;
+  background: var(--code-bg);
 }
 
-.note-body pre.mermaid[data-processed] {
-  font-family: inherit;
-  white-space: normal;
+.note-body figure.diagram svg {
+  flex: none;
+  max-width: 100%;
+  height: auto;
 }
 
 /* Tables */

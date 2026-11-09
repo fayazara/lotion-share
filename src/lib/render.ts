@@ -3,17 +3,18 @@ import markedAlert from "marked-alert"
 import { gfmHeadingId, getHeadingList } from "marked-gfm-heading-id"
 import { markedHighlight } from "marked-highlight"
 import hljs from "highlight.js/lib/common"
+import { renderMermaidSVG } from "beautiful-mermaid"
 import type { LinkPreview } from "@/db/schema"
 
 /**
  * Turns a note's Markdown into the HTML of its public page, reading it the way
  * Lotion does: a link alone on its line is an embed or a card, `[TOC]` is a
- * table of contents, `![[Note]]` is another note, ```mermaid is a diagram,
+ * table of contents, `![[Note]]` is another note, ```mermaid is a diagram
+ * (drawn here, by beautiful-mermaid, like the app's),
  * and images, videos, audio and PDFs show as themselves.
  */
 export type Rendered = {
   html: string
-  hasMermaid: boolean
   /** The first image, for link previews of the page itself. */
   firstImage?: string
   /** A sentence or two of plain text, for link previews of the page itself. */
@@ -216,6 +217,34 @@ ${image ? `<span class="link-card-image"><img src="${escapeHtml(image)}" alt="" 
 </a>`
 }
 
+/**
+ * A diagram as inline SVG, drawn by beautiful-mermaid — the TypeScript
+ * original of the library Lotion draws with, so the page matches the app.
+ * Its colors are the page's own variables, so it follows light and dark.
+ * A source it can't read shows as code instead.
+ */
+function diagram(source: string): string {
+  try {
+    const svg = renderMermaidSVG(source, {
+      bg: "var(--code-bg)",
+      fg: "var(--text)",
+      // The SVG sets its own --accent, so the page's comes in under another name.
+      accent: "var(--diagram-accent)",
+      muted: "var(--secondary)",
+      // Not a web font: the SVG falls back to the system font, like the page.
+      font: "system-ui",
+      transparent: true,
+    })
+      // It would fetch the font from Google Fonts; the page uses the system's.
+      .replace(/@import url\([^)]*fonts\.googleapis\.com[^)]*\);?/g, "")
+      // An HTML block ends at a blank line; keep the SVG in one piece.
+      .replace(/\n\s*\n/g, "\n")
+    return `<figure class="diagram">${svg}</figure>`
+  } catch {
+    return `<pre><code class="hljs language-mermaid">${escapeHtml(source)}</code></pre>`
+  }
+}
+
 function fileCard(label: string, target: string): string {
   const ext = extension(target).toUpperCase()
   return `<a class="file-card" href="${escapeHtml(target)}" download="${escapeHtml(label || fileName(target))}">
@@ -227,7 +256,6 @@ function fileCard(label: string, target: string): string {
 
 /** Rewrites the lines Lotion reads as rich blocks into HTML blocks. */
 function preprocess(markdown: string, links: Record<string, LinkPreview>) {
-  let hasMermaid = false
   let mermaid: string[] | null = null
   let mermaidFence = ""
   const out: string[] = []
@@ -239,7 +267,7 @@ function preprocess(markdown: string, links: Record<string, LinkPreview>) {
   for (const line of body.split("\n")) {
     if (mermaid) {
       if (line.trim() === mermaidFence) {
-        out.push(`<pre class="mermaid">${escapeHtml(mermaid.join("\n"))}</pre>`, "")
+        out.push("", diagram(mermaid.join("\n")), "")
         mermaid = null
       } else {
         mermaid.push(line)
@@ -256,7 +284,6 @@ function preprocess(markdown: string, links: Record<string, LinkPreview>) {
     }
     if (opener) {
       if (opener[2].toLowerCase() === "mermaid") {
-        hasMermaid = true
         mermaid = []
         mermaidFence = opener[1]
         continue
@@ -298,8 +325,8 @@ function preprocess(markdown: string, links: Record<string, LinkPreview>) {
     }
     out.push(line)
   }
-  if (mermaid) out.push(`<pre class="mermaid">${escapeHtml(mermaid.join("\n"))}</pre>`)
-  return { text: out.join("\n"), hasMermaid }
+  if (mermaid) out.push("", diagram(mermaid.join("\n")))
+  return out.join("\n")
 }
 
 function tocHtml(): string {
@@ -356,14 +383,14 @@ export function renderMarkdown(markdown: string, links: Record<string, LinkPrevi
     }
   )
 
-  const { text, hasMermaid } = preprocess(markdown, links)
+  const text = preprocess(markdown, links)
   let html = marked.parse(text, { async: false }) as string
   if (html.includes(TOC_PLACEHOLDER)) html = html.split(TOC_PLACEHOLDER).join(tocHtml())
   if (!firstImage) firstImage = /<img src="([^"]+)"/.exec(html)?.[1]
 
   // The first heading is the note's title, already shown in the page's head.
   const excerpt = plainText(html.replace(/^\s*<h1[\s\S]*?<\/h1>/, "")).slice(0, 200)
-  return { html, hasMermaid, firstImage, excerpt }
+  return { html, firstImage, excerpt }
 }
 
 // MARK: Link previews

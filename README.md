@@ -33,7 +33,8 @@ way Lotion reads Markdown:
 - the note's theme colors, following the reader's light or dark mode, set in the system font
 - its cover photo (with the Unsplash credit) and its icon
 - headings, lists, checklists, tables, callouts (`> [!TIP]`) and `[TOC]`
-- code with syntax highlighting, and Mermaid diagrams
+- code with syntax highlighting, and Mermaid diagrams drawn on the worker as SVG by
+  [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid), like in the app
 - YouTube, Vimeo, Loom, Spotify, Apple Music, Figma and CodePen embeds
 - link cards, with the linked page's title, description and image
 - images, video, audio, PDFs, and download cards for other files
@@ -94,7 +95,7 @@ To point Lotion at it, set the Worker URL to `http://localhost:3000` and the
 token to `local-dev-token`.
 
 Built on TanStack Start, the [`cf` CLI](https://developers.cloudflare.com/cf/),
-Drizzle and marked. See [AGENTS.md](AGENTS.md) for the patterns this codebase
+Drizzle, marked and beautiful-mermaid. See [AGENTS.md](AGENTS.md) for the patterns this codebase
 follows.
 
 ## License

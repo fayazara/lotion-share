@@ -23,7 +23,6 @@ const getNote = createServerFn()
       id: note.id,
       title: note.title,
       html: rendered.html,
-      hasMermaid: rendered.hasMermaid,
       excerpt: rendered.excerpt,
       image: file(note.cover) ?? rendered.firstImage ?? null,
       cover: file(note.cover),
@@ -87,27 +86,6 @@ function themeCss(style: NoteStyle): { css: string; mode: "both" | "light" | "da
   return { css: `${base}@media (prefers-color-scheme: dark){:root{${variables(dark)}}}`, mode: "both" }
 }
 
-const MERMAID = `
-import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-const css = getComputedStyle(document.documentElement);
-const dark = css.colorScheme === "dark";
-mermaid.initialize({
-  startOnLoad: false,
-  theme: "base",
-  fontFamily: css.getPropertyValue("--note-font"),
-  themeVariables: {
-    darkMode: dark,
-    background: css.getPropertyValue("--bg").trim(),
-    primaryColor: css.getPropertyValue("--code-bg").trim(),
-    primaryTextColor: css.getPropertyValue("--text").trim(),
-    primaryBorderColor: css.getPropertyValue("--rule").trim(),
-    lineColor: css.getPropertyValue("--secondary").trim(),
-    textColor: css.getPropertyValue("--text").trim(),
-  },
-});
-await mermaid.run({ querySelector: "pre.mermaid" });
-`
-
 export const Route = createFileRoute("/n/$id")({
   loader: async ({ params }) => {
     const note = await getNote({ data: params.id })
@@ -138,7 +116,6 @@ export const Route = createFileRoute("/n/$id")({
       meta,
       links: [{ rel: "stylesheet", href: noteCss }, ...codeSheets],
       styles: [{ children: theme.css }],
-      scripts: note.hasMermaid ? [{ type: "module", children: MERMAID }] : [],
     }
   },
   component: NotePage,
